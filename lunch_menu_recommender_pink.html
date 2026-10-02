@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘 뭐 먹지? 점심메뉴 추천기</title>
+  <style>
+    :root{
+      --pink-950:#55102f;
+      --pink-900:#711840;
+      --pink-800:#922653;
+      --pink-700:#b93669;
+      --pink-600:#d94f84;
+      --pink-500:#ef73a5;
+      --pink-400:#f596bc;
+      --pink-300:#f9b6d0;
+      --pink-200:#fbd3e2;
+      --pink-100:#fde9f1;
+      --pink-50:#fff6f9;
+      --ink:#2f2230;
+      --muted:#776875;
+      --line:#f2cfdb;
+      --card:#fff;
+      --shadow:0 18px 45px rgba(156,47,94,.12);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter, Pretendard, "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(245,150,188,.28), transparent 28%),
+        radial-gradient(circle at 92% 6%, rgba(239,115,165,.22), transparent 23%),
+        linear-gradient(180deg,#fff9fb 0%,#fff2f7 100%);
+    }
+
+    button,input,select{font:inherit}
+
+    .wrap{
+      width:min(1120px,calc(100% - 28px));
+      margin:0 auto;
+      padding:32px 0 56px;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1.3fr .7fr;
+      gap:18px;
+      margin-bottom:20px;
+    }
+
+    .hero-card,.side-card,.section{
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+
+    .hero-card{padding:30px}
+    .side-card{
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      background:linear-gradient(145deg,#fff,#fff0f5);
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--pink-100);
+      color:var(--pink-800);
+      font-weight:900;
+      font-size:13px;
+      margin-bottom:14px;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(30px,5vw,48px);
+      line-height:1.08;
+      letter-spacing:-.045em;
+    }
+
+    .hero p{
+      margin:14px 0 0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:15px;
+    }
+
+    .side-card strong{
+      font-size:18px;
+      color:var(--pink-900);
+      margin-bottom:8px;
+    }
+
+    .side-card span{
+      color:var(--muted);
+      line-height:1.65;
+      font-size:14px;
+    }
+
+    .section{
+      padding:24px;
+      margin-top:20px;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-end;
+      margin-bottom:18px;
+    }
+
+    .section h2{
+      margin:0;
+      font-size:21px;
+      letter-spacing:-.03em;
+    }
+
+    .hint{
+      margin:5px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .filters{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .filter-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:linear-gradient(180deg,#fff,#fffafb);
+    }
+
+    .filter-label{
+      display:block;
+      font-weight:900;
+      font-size:13px;
+      margin-bottom:10px;
+    }
+
+    select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:11px 12px;
+      background:#fff;
+      color:var(--ink);
+      outline:none;
+      cursor:pointer;
+    }
+
+    select:focus{
+      border-color:var(--pink-500);
+      box-shadow:0 0 0 4px rgba(239,115,165,.12);
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .chip{
+      border:1px solid var(--pink-200);
+      background:var(--pink-50);
+      color:var(--pink-900);
+      padding:9px 12px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:13px;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+
+    .chip.active{
+      background:linear-gradient(135deg,var(--pink-700),var(--pink-500));
+      color:white;
+      border-color:transparent;
+      box-shadow:0 8px 18px rgba(217,79,132,.22);
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .btn{
+      border:0;
+      border-radius:14px;
+      padding:13px 18px;
+      font-weight:900;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:scale(.98)}
+
+    .btn-primary{
+      color:#fff;
+      background:linear-gradient(135deg,var(--pink-700),var(--pink-500));
+      box-shadow:0 10px 20px rgba(217,79,132,.22);
+    }
+
+    .btn-secondary{
+      color:var(--pink-900);
+      background:var(--pink-100);
+      border:1px solid var(--pink-200);
+    }
+
+    .recommendation{
+      display:grid;
+      grid-template-columns:.9fr 1.1fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .pick-card{
+      border:1px solid var(--pink-200);
+      border-radius:22px;
+      padding:24px;
+      background:linear-gradient(145deg,#fff,#fff3f7);
+      min-height:260px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .pick-card::after{
+      content:"";
+      position:absolute;
+      width:140px;height:140px;
+      border-radius:50%;
+      background:rgba(245,150,188,.14);
+      right:-50px;top:-50px;
+    }
+
+    .emoji{
+      font-size:64px;
+      margin-bottom:12px;
+      transform:scale(.9);
+      transition:.25s ease;
+    }
+
+    .pick-card.pop .emoji{
+      transform:scale(1.08) rotate(-4deg);
+    }
+
+    .menu-name{
+      font-size:30px;
+      font-weight:1000;
+      color:var(--pink-900);
+      letter-spacing:-.04em;
+      margin-bottom:8px;
+    }
+
+    .menu-desc{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+      max-width:330px;
+    }
+
+    .reason-card{
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:22px;
+      background:#fff;
+    }
+
+    .reason-card h3{
+      margin:0 0 12px;
+      font-size:18px;
+    }
+
+    .reason-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .reason{
+      padding:12px 14px;
+      border-radius:14px;
+      background:var(--pink-50);
+      border:1px solid var(--pink-100);
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .roulette{
+      margin-top:14px;
+      height:68px;
+      overflow:hidden;
+      border:1px dashed var(--pink-300);
+      border-radius:16px;
+      background:#fffafb;
+      position:relative;
+    }
+
+    .roulette-track{
+      position:absolute;
+      left:0; right:0;
+      top:0;
+      transition:transform 2.4s cubic-bezier(.15,.75,.2,1);
+    }
+
+    .roulette-item{
+      height:68px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-weight:900;
+      color:var(--pink-900);
+      font-size:17px;
+    }
+
+    .menu-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .menu-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:#fff;
+      transition:.18s ease;
+    }
+
+    .menu-card:hover{
+      transform:translateY(-2px);
+      border-color:var(--pink-300);
+      box-shadow:0 10px 26px rgba(156,47,94,.1);
+    }
+
+    .menu-card .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:9px;
+    }
+
+    .menu-card strong{font-size:16px}
+    .tag{
+      font-size:11px;
+      font-weight:900;
+      color:var(--pink-900);
+      background:var(--pink-100);
+      padding:5px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+
+    .menu-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+
+    .empty{
+      padding:20px;
+      text-align:center;
+      border:1px dashed var(--line);
+      border-radius:16px;
+      color:var(--muted);
+      background:#fffafb;
+    }
+
+    @media (max-width:860px){
+      .hero,.recommendation{grid-template-columns:1fr}
+      .filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (max-width:560px){
+      .wrap{width:min(100% - 18px,1120px);padding-top:18px}
+      .hero-card,.side-card,.section{padding:18px;border-radius:20px}
+      .filters,.menu-grid{grid-template-columns:1fr}
+      .section-head{align-items:flex-start;flex-direction:column}
+      .actions{display:grid;grid-template-columns:1fr}
+      .btn{width:100%}
+      .menu-name{font-size:26px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">🍱 점심메뉴 추천기</div>
+        <h1>오늘 점심,<br>고민 말고 골라드릴게요.</h1>
+        <p>원하는 분위기와 조건을 선택하면 메뉴를 추천하고, 결정이 어려우면 랜덤 뽑기로 오늘의 점심을 정할 수 있습니다.</p>
+      </div>
+      <div class="side-card">
+        <strong>빠르게 고르는 법</strong>
+        <span>조건을 대충 골라도 괜찮아요. 너무 엄격하게 맞추기보다, 지금 먹고 싶은 느낌에 가까운 메뉴를 추천해드립니다.</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>오늘의 조건</h2>
+          <p class="hint">대충 골라도 충분합니다.</p>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="filter-card">
+          <label class="filter-label">분위기</label>
+          <select id="mood">
+            <option value="any">아무거나</option>
+            <option value="warm">따뜻하고 든든하게</option>
+            <option value="light">가볍고 산뜻하게</option>
+            <option value="spicy">매콤하게</option>
+            <option value="special">조금 특별하게</option>
+          </select>
+        </div>
+
+        <div class="filter-card">
+          <label class="filter-label">예산</label>
+          <select id="budget">
+            <option value="any">상관없음</option>
+            <option value="low">1만원 이하</option>
+            <option value="mid">1만~1.5만원</option>
+            <option value="high">1.5만원 이상도 OK</option>
+          </select>
+        </div>
+
+        <div class="filter-card">
+          <label class="filter-label">식사 스타일</label>
+          <select id="style">
+            <option value="any">아무거나</option>
+            <option value="rice">밥</option>
+            <option value="noodle">면</option>
+            <option value="soup">국물</option>
+            <option value="bread">빵/샌드위치</option>
+          </select>
+        </div>
+
+        <div class="filter-card">
+          <label class="filter-label">먹는 시간</label>
+          <select id="speed">
+            <option value="any">상관없음</option>
+            <option value="quick">빠르게</option>
+            <option value="normal">보통</option>
+            <option value="slow">여유롭게</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <span class="filter-label">추가 취향</span>
+        <div class="chips" id="chips">
+          <button class="chip" data-pref="korean">한식</button>
+          <button class="chip" data-pref="japanese">일식</button>
+          <button class="chip" data-pref="western">양식</button>
+          <button class="chip" data-pref="healthy">건강하게</button>
+          <button class="chip" data-pref="comfort">든든하게</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="recommendBtn" class="btn btn-primary">점심 추천받기</button>
+        <button id="randomBtn" class="btn btn-secondary">🎲 그냥 뽑아줘</button>
+        <button id="resetBtn" class="btn btn-secondary">초기화</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>오늘의 추천</h2>
+          <p class="hint">조건과 취향을 바탕으로 골랐어요.</p>
+        </div>
+      </div>
+
+      <div class="recommendation">
+        <div id="pickCard" class="pick-card">
+          <div class="emoji" id="emoji">🍽️</div>
+          <div class="menu-name" id="menuName">아직 추천 전이에요</div>
+          <div class="menu-desc" id="menuDesc">조건을 선택하고 버튼을 눌러주세요.</div>
+        </div>
+
+        <div class="reason-card">
+          <h3>추천 이유</h3>
+          <div id="reasonList" class="reason-list">
+            <div class="reason">선택한 조건에 맞춰 이유를 보여드립니다.</div>
+          </div>
+
+          <div class="roulette">
+            <div id="rouletteTrack" class="roulette-track"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>다른 후보도 보기</h2>
+          <p class="hint">추천 점수가 높은 메뉴 순으로 보여줍니다.</p>
+        </div>
+      </div>
+      <div id="menuGrid" class="menu-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const menus = [
+      {name:"제육볶음", emoji:"🥘", mood:["warm","spicy"], budget:"low", style:"rice", speed:"normal", prefs:["korean","comfort"], desc:"매콤하고 든든한 한 끼가 필요할 때.", tag:"든든"},
+      {name:"김치찌개", emoji:"🍲", mood:["warm","spicy"], budget:"low", style:"soup", speed:"normal", prefs:["korean","comfort"], desc:"뜨끈한 국물과 밥 조합이 생각날 때.", tag:"국물"},
+      {name:"비빔밥", emoji:"🍚", mood:["light","warm"], budget:"low", style:"rice", speed:"quick", prefs:["korean","healthy"], desc:"여러 재료를 한 번에 가볍게 먹고 싶을 때.", tag:"균형"},
+      {name:"순두부찌개", emoji:"🍲", mood:["warm","spicy"], budget:"low", style:"soup", speed:"normal", prefs:["korean","comfort"], desc:"부드럽고 따뜻한 국물이 당길 때.", tag:"따뜻"},
+      {name:"돈까스", emoji:"🍛", mood:["warm","special"], budget:"mid", style:"rice", speed:"normal", prefs:["japanese","comfort"], desc:"바삭하고 확실한 만족감이 필요할 때.", tag:"바삭"},
+      {name:"초밥", emoji:"🍣", mood:["light","special"], budget:"high", style:"rice", speed:"slow", prefs:["japanese"], desc:"깔끔하고 조금 특별한 점심을 원할 때.", tag:"깔끔"},
+      {name:"우동", emoji:"🍜", mood:["warm"], budget:"low", style:"noodle", speed:"quick", prefs:["japanese"], desc:"부담 없이 따뜻한 면 한 그릇이 좋을 때.", tag:"편안"},
+      {name:"라멘", emoji:"🍜", mood:["warm","spicy"], budget:"mid", style:"noodle", speed:"normal", prefs:["japanese","comfort"], desc:"진한 국물과 면이 당기는 날.", tag:"진한맛"},
+      {name:"파스타", emoji:"🍝", mood:["special","warm"], budget:"mid", style:"noodle", speed:"slow", prefs:["western"], desc:"여유롭게 기분 전환하고 싶을 때.", tag:"기분전환"},
+      {name:"샌드위치", emoji:"🥪", mood:["light"], budget:"low", style:"bread", speed:"quick", prefs:["western","healthy"], desc:"빠르고 가볍게 해결하고 싶을 때.", tag:"빠르게"},
+      {name:"샐러드", emoji:"🥗", mood:["light"], budget:"mid", style:"bread", speed:"quick", prefs:["healthy","western"], desc:"오후 일정이 많아 가볍게 먹고 싶을 때.", tag:"가볍게"},
+      {name:"쌀국수", emoji:"🍜", mood:["light","warm"], budget:"mid", style:"noodle", speed:"normal", prefs:["healthy"], desc:"담백한 국물과 면 조합이 생각날 때.", tag:"담백"},
+      {name:"마라탕", emoji:"🌶️", mood:["spicy","special"], budget:"mid", style:"soup", speed:"normal", prefs:["comfort"], desc:"자극적이고 매콤한 맛으로 기분 전환하고 싶을 때.", tag:"매콤"},
+      {name:"부리또", emoji:"🌯", mood:["special","warm"], budget:"mid", style:"bread", speed:"quick", prefs:["western","comfort"], desc:"한 손에 들고 빠르게 든든함을 챙기고 싶을 때.", tag:"간편"},
+      {name:"포케", emoji:"🥗", mood:["light","special"], budget:"mid", style:"rice", speed:"quick", prefs:["healthy"], desc:"산뜻하면서도 포만감 있는 점심을 원할 때.", tag:"산뜻"}
+    ];
+
+    const mood = document.getElementById("mood");
+    const budget = document.getElementById("budget");
+    const style = document.getElementById("style");
+    const speed = document.getElementById("speed");
+    const chips = [...document.querySelectorAll(".chip")];
+    const menuName = document.getElementById("menuName");
+    const menuDesc = document.getElementById("menuDesc");
+    const emoji = document.getElementById("emoji");
+    const reasonList = document.getElementById("reasonList");
+    const menuGrid = document.getElementById("menuGrid");
+    const rouletteTrack = document.getElementById("rouletteTrack");
+    const pickCard = document.getElementById("pickCard");
+
+    let activePrefs = new Set();
+
+    chips.forEach(chip=>{
+      chip.addEventListener("click",()=>{
+        const pref = chip.dataset.pref;
+        if(activePrefs.has(pref)){
+          activePrefs.delete(pref);
+          chip.classList.remove("active");
+        }else{
+          activePrefs.add(pref);
+          chip.classList.add("active");
+        }
+      });
+    });
+
+    function scoreMenu(menu){
+      let score = 0;
+
+      if(mood.value !== "any" && menu.mood.includes(mood.value)) score += 3;
+      if(budget.value !== "any" && menu.budget === budget.value) score += 2;
+      if(style.value !== "any" && menu.style === style.value) score += 2;
+      if(speed.value !== "any" && menu.speed === speed.value) score += 2;
+
+      activePrefs.forEach(pref=>{
+        if(menu.prefs.includes(pref)) score += 2;
+      });
+
+      return score;
+    }
+
+    function rankedMenus(){
+      return menus
+        .map(m=>({...m,score:scoreMenu(m)}))
+        .sort((a,b)=>b.score-a.score || Math.random()-.5);
+    }
+
+    function buildReasons(menu){
+      const reasons = [];
+
+      if(mood.value !== "any" && menu.mood.includes(mood.value)){
+        const text = {
+          warm:"따뜻하고 든든한 분위기와 잘 맞아요.",
+          light:"가볍고 산뜻하게 먹고 싶은 날에 어울려요.",
+          spicy:"매콤한 맛이 당기는 조건에 잘 맞아요.",
+          special:"평소보다 조금 특별한 점심으로 좋아요."
+        }[mood.value];
+        reasons.push(text);
+      }
+
+      if(budget.value !== "any" && menu.budget === budget.value){
+        reasons.push("선택한 예산 범위에 잘 맞는 메뉴예요.");
+      }
+
+      if(style.value !== "any" && menu.style === style.value){
+        reasons.push("원하는 식사 스타일과 일치해요.");
+      }
+
+      if(speed.value !== "any" && menu.speed === speed.value){
+        reasons.push(speed.value === "quick"
+          ? "짧은 점심시간에도 부담 없이 먹기 좋아요."
+          : "선택한 식사 속도와 잘 맞아요.");
+      }
+
+      const matchedPrefs = [...activePrefs].filter(p=>menu.prefs.includes(p));
+      if(matchedPrefs.length){
+        reasons.push("선택한 추가 취향과 잘 맞는 메뉴예요.");
+      }
+
+      if(!reasons.length){
+        reasons.push("조건을 넓게 잡았을 때 무난하게 만족도가 높은 메뉴예요.");
+        reasons.push("오늘 점심으로 부담 없이 선택하기 좋은 메뉴입니다.");
+      }
+
+      return reasons.slice(0,3);
+    }
+
+    function showMenu(menu){
+      pickCard.classList.remove("pop");
+      void pickCard.offsetWidth;
+      pickCard.classList.add("pop");
+
+      emoji.textContent = menu.emoji;
+      menuName.textContent = menu.name;
+      menuDesc.textContent = menu.desc;
+
+      reasonList.innerHTML = buildReasons(menu)
+        .map(r=>`<div class="reason">${r}</div>`)
+        .join("");
+    }
+
+    function renderGrid(list){
+      menuGrid.innerHTML = list.slice(0,6).map(m=>`
+        <article class="menu-card">
+          <div class="top">
+            <strong>${m.emoji} ${m.name}</strong>
+            <span class="tag">${m.tag}</span>
+          </div>
+          <p>${m.desc}</p>
+        </article>
+      `).join("");
+    }
+
+    function recommend(){
+      const ranked = rankedMenus();
+      const topScore = ranked[0].score;
+      const topCandidates = ranked.filter(m=>m.score===topScore);
+      const selected = topCandidates[Math.floor(Math.random()*topCandidates.length)];
+      showMenu(selected);
+      renderGrid(ranked.filter(m=>m.name!==selected.name));
+    }
+
+    function spinRandom(){
+      const sequence = [];
+      for(let i=0;i<9;i++){
+        sequence.push(menus[Math.floor(Math.random()*menus.length)]);
+      }
+      const selected = menus[Math.floor(Math.random()*menus.length)];
+      sequence.push(selected);
+
+      rouletteTrack.innerHTML = sequence.map(m=>`
+        <div class="roulette-item">${m.emoji} ${m.name}</div>
+      `).join("");
+
+      rouletteTrack.style.transition="none";
+      rouletteTrack.style.transform="translateY(0)";
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          rouletteTrack.style.transition="transform 2.4s cubic-bezier(.15,.75,.2,1)";
+          rouletteTrack.style.transform=`translateY(-${68*(sequence.length-1)}px)`;
+        });
+      });
+
+      setTimeout(()=>{
+        showMenu(selected);
+        const others = menus.filter(m=>m.name!==selected.name).sort(()=>Math.random()-.5);
+        renderGrid(others);
+      },2400);
+    }
+
+    function resetAll(){
+      mood.value="any";
+      budget.value="any";
+      style.value="any";
+      speed.value="any";
+      activePrefs.clear();
+      chips.forEach(c=>c.classList.remove("active"));
+      emoji.textContent="🍽️";
+      menuName.textContent="아직 추천 전이에요";
+      menuDesc.textContent="조건을 선택하고 버튼을 눌러주세요.";
+      reasonList.innerHTML='<div class="reason">선택한 조건에 맞춰 이유를 보여드립니다.</div>';
+      rouletteTrack.innerHTML="";
+      renderGrid(menus.slice(0,6));
+    }
+
+    document.getElementById("recommendBtn").addEventListener("click",recommend);
+    document.getElementById("randomBtn").addEventListener("click",spinRandom);
+    document.getElementById("resetBtn").addEventListener("click",resetAll);
+
+    renderGrid(menus.slice(0,6));
+  </script>
+</body>
+</html>
