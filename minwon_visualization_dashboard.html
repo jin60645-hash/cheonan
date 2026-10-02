@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>민원처리 현황 시각화 개선 기획 대시보드</title>
+<style>
+  :root{
+    --bg:#f4f7fb;
+    --panel:#ffffff;
+    --ink:#172033;
+    --muted:#667085;
+    --line:#e6eaf0;
+    --accent:#3157d5;
+    --accent-soft:#eef2ff;
+    --warn:#b54708;
+    --warn-soft:#fff6ed;
+    --ok:#027a48;
+    --ok-soft:#ecfdf3;
+    --danger:#b42318;
+    --danger-soft:#fef3f2;
+    --shadow:0 8px 24px rgba(16,24,40,.07);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#f8faff 0%,var(--bg) 100%);
+    color:var(--ink);
+    font-family:Pretendard,"Noto Sans KR","Apple SD Gothic Neo",Segoe UI,sans-serif;
+  }
+  .page{
+    width:min(1500px,calc(100% - 40px));
+    margin:24px auto 40px;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    gap:24px;
+    align-items:flex-end;
+    margin-bottom:18px;
+  }
+  .eyebrow{
+    font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--accent);
+    margin-bottom:8px;
+  }
+  h1{font-size:30px;line-height:1.25;margin:0 0 8px}
+  .sub{color:var(--muted);font-size:14px}
+  .status{
+    display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;
+  }
+  .badge{
+    font-size:12px;font-weight:800;padding:7px 10px;border-radius:999px;
+    border:1px solid var(--line);background:#fff;
+  }
+  .badge.blue{color:var(--accent);background:var(--accent-soft);border-color:#d9e0ff}
+  .badge.orange{color:var(--warn);background:var(--warn-soft);border-color:#fedfbb}
+  .grid{
+    display:grid;
+    grid-template-columns:1.15fr 1fr 1fr;
+    gap:16px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    min-width:0;
+  }
+  .span2{grid-column:span 2}
+  .span3{grid-column:1/-1}
+  .card h2{
+    font-size:16px;margin:0 0 14px;display:flex;align-items:center;gap:8px;
+  }
+  .num{
+    width:28px;height:28px;border-radius:9px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--accent-soft);color:var(--accent);font-weight:900;font-size:13px;
+  }
+  .fact{
+    padding:12px 14px;border-radius:12px;background:#f8fafc;border:1px solid var(--line);
+    font-size:14px;line-height:1.6;
+  }
+  .fact strong{color:var(--accent)}
+  .issues{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .issue{
+    border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff;
+  }
+  .issue .k{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
+  .issue .v{font-size:14px;font-weight:700;line-height:1.45}
+  .goals{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .goal{
+    display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);
+    border-radius:14px;background:#fff;
+  }
+  .dot{
+    width:9px;height:9px;background:var(--accent);border-radius:50%;margin-top:7px;flex:0 0 auto
+  }
+  .goal b{font-size:14px}
+  .goal span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.4}
+  .tasks{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .task{
+    min-height:112px;padding:14px;border-radius:14px;border:1px solid var(--line);
+    background:linear-gradient(180deg,#fff 0%,#fafbff 100%);
+  }
+  .task small{color:var(--accent);font-weight:900}
+  .task h3{font-size:14px;margin:8px 0 6px}
+  .task p{font-size:12px;color:var(--muted);line-height:1.45;margin:0}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:stretch}
+  .step{position:relative;padding:14px;border-radius:14px;background:#f8fafc;border:1px solid var(--line)}
+  .step:not(:last-child)::after{
+    content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);
+    color:#98a2b3;font-weight:900;z-index:2;
+  }
+  .step .n{font-size:11px;color:var(--accent);font-weight:900}
+  .step b{display:block;font-size:13px;margin:5px 0}
+  .step span{font-size:11px;color:var(--muted);line-height:1.4}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    font-size:12px;border-radius:999px;padding:8px 10px;background:var(--ok-soft);
+    color:var(--ok);border:1px solid #abefc6;font-weight:800;
+  }
+  .risk-list{display:grid;gap:8px}
+  .risk{
+    display:grid;grid-template-columns:1fr 1.25fr;gap:10px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:12px;font-size:12px;
+  }
+  .risk b{color:var(--danger)}
+  .risk span{color:var(--muted)}
+  .check{
+    padding:12px 14px;border-radius:14px;background:var(--warn-soft);
+    border:1px solid #fedf89;font-size:12px;line-height:1.65;
+  }
+  .decision{
+    background:linear-gradient(135deg,#172033 0%,#273b7a 100%);
+    color:#fff;border:none;
+  }
+  .decision h2{color:#fff}
+  .decision-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px
+  }
+  .decision-item{
+    border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:13px 14px;
+    background:rgba(255,255,255,.07);font-size:13px;line-height:1.45
+  }
+  .decision-item b{display:block;color:#cbd5ff;margin-bottom:4px;font-size:11px}
+  .footer-note{
+    margin-top:10px;font-size:11px;color:#98a2b3;
+  }
+  .toggle-row{
+    display:flex;gap:8px;margin-bottom:12px;
+  }
+  button{
+    border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:8px 11px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;
+  }
+  button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .proposal{transition:.2s ease}
+  body.hide-proposal .proposal{opacity:.2;filter:grayscale(1)}
+  @media(max-width:1100px){
+    .grid{grid-template-columns:1fr 1fr}
+    .span3{grid-column:1/-1}.span2{grid-column:1/-1}
+    .tasks{grid-template-columns:repeat(3,1fr)}
+    .decision-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:760px){
+    .page{width:min(100% - 24px,1500px);margin-top:16px}
+    header{align-items:flex-start;flex-direction:column}
+    h1{font-size:24px}
+    .grid{grid-template-columns:1fr}
+    .span2,.span3{grid-column:auto}
+    .issues,.goals,.tasks,.flow,.decision-grid{grid-template-columns:1fr}
+    .step:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-18px;transform:translateX(-50%)}
+    .risk{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff}
+    .page{width:100%;margin:0;padding:0}
+    .card{box-shadow:none;break-inside:avoid}
+    .toggle-row{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <div class="eyebrow">INTERNAL REVIEW DASHBOARD</div>
+      <h1>민원처리 현황 시각화 개선 기획</h1>
+      <div class="sub">수작업 취합·기준 불일치·현황 파악 어려움을 개선하기 위한 내부 검토안</div>
+    </div>
+    <div class="status">
+      <span class="badge blue">기획 초안</span>
+      <span class="badge orange">일정·예산·담당 미정</span>
+    </div>
+  </header>
+
+  <div class="toggle-row">
+    <button id="allBtn" class="active">전체 보기</button>
+    <button id="factBtn">확인된 사실 중심</button>
+  </div>
+
+  <main class="grid">
+    <section class="card span2">
+      <h2><span class="num">1</span> 추진 배경 및 문제</h2>
+      <div class="fact">
+        현재 부서별 민원 처리 현황을 <strong>월말마다 수작업으로 취합</strong>하고 있으며,
+        여러 파일의 수치를 복사해 보고자료를 작성하고 있다.
+      </div>
+      <div class="issues" style="margin-top:12px">
+        <div class="issue"><div class="k">자료 취합</div><div class="v">여러 파일의 수치를 수작업으로 복사한다.</div></div>
+        <div class="issue"><div class="k">집계 기준</div><div class="v">부서별 기준 차이로 재확인이 반복된다.</div></div>
+        <div class="issue"><div class="k">현황 파악</div><div class="v">긴급·장기 미처리 건을 즉시 파악하기 어렵다.</div></div>
+      </div>
+    </section>
+
+    <section class="card proposal">
+      <h2><span class="num">2</span> 추진 목표</h2>
+      <div class="goals">
+        <div class="goal"><span class="dot"></span><div><b>입력 기준 표준화</b><span>부서별 입력·집계 기준을 정비한다.</span></div></div>
+        <div class="goal"><span class="dot"></span><div><b>KPI 자동 계산</b><span>반복 계산을 줄이는 기반을 마련한다.</span></div></div>
+        <div class="goal"><span class="dot"></span><div><b>필터 조회</b><span>부서·상태·긴급도별 현황을 확인한다.</span></div></div>
+        <div class="goal"><span class="dot"></span><div><b>추이 시각화</b><span>월별 처리 흐름을 쉽게 확인한다.</span></div></div>
+      </div>
+    </section>
+
+    <section class="card span3 proposal">
+      <h2><span class="num">3</span> 주요 추진과제</h2>
+      <div class="tasks">
+        <div class="task"><small>01</small><h3>공통 입력 양식</h3><p>부서별 입력 항목과 집계 기준을 공통화하는 방안을 검토한다.</p></div>
+        <div class="task"><small>02</small><h3>KPI 자동 계산</h3><p>공통 입력값을 기준으로 기본 KPI를 자동 산출하는 기능을 검토한다.</p></div>
+        <div class="task"><small>03</small><h3>조회·필터</h3><p>부서, 상태, 긴급도 등을 기준으로 현황을 구분해 조회한다.</p></div>
+        <div class="task"><small>04</small><h3>월별 추이</h3><p>월별 민원 처리 현황과 변화 추이를 차트로 제공한다.</p></div>
+        <div class="task"><small>05</small><h3>개인정보 비표시</h3><p>실제 개인정보는 대시보드에 표시하지 않는 것을 원칙으로 한다.</p></div>
+      </div>
+    </section>
+
+    <section class="card span2 proposal">
+      <h2><span class="num">4</span> 실행 절차(안)</h2>
+      <div class="flow">
+        <div class="step"><span class="n">STEP 1</span><b>현황 확인</b><span>입력 항목·집계 기준·보고 방식 확인</span></div>
+        <div class="step"><span class="n">STEP 2</span><b>기준 정비</b><span>공통 입력 양식·KPI 정의</span></div>
+        <div class="step"><span class="n">STEP 3</span><b>화면 설계</b><span>필터·KPI·월별 추이 구성</span></div>
+        <div class="step"><span class="n">STEP 4</span><b>구현·검증</b><span>입력·집계·시각화 기능 확인</span></div>
+        <div class="step"><span class="n">STEP 5</span><b>운영 확정</b><span>관리·유지관리 방식 확정</span></div>
+      </div>
+      <div class="footer-note">※ 기존 시스템 변경이 필요한 경우 별도 검토가 필요하다.</div>
+    </section>
+
+    <section class="card proposal">
+      <h2><span class="num">5</span> 기대효과</h2>
+      <div class="chips">
+        <span class="chip">수작업 취합 감소</span>
+        <span class="chip">집계 기준 차이 완화</span>
+        <span class="chip">긴급·장기 미처리 가시성 향상</span>
+        <span class="chip">월별 추이 확인 편의 향상</span>
+      </div>
+      <div class="footer-note">※ 정량적 절감률·오류 감소율은 추가 확인이 필요하다.</div>
+    </section>
+
+    <section class="card span2">
+      <h2><span class="num">6</span> 위험요인 및 대응방안</h2>
+      <div class="risk-list">
+        <div class="risk"><b>집계 기준 차이</b><span>공통 입력 기준과 지표 정의를 선행한다.</span></div>
+        <div class="risk"><b>개인정보 노출</b><span>개인정보 비표시 원칙을 적용한다.</span></div>
+        <div class="risk"><b>기존 시스템 영향</b><span>시스템 변경 필요 여부를 별도 검토한다.</span></div>
+        <div class="risk proposal"><b>데이터 정확성</b><span>입력 기준과 검증 절차 마련을 검토한다.</span></div>
+        <div class="risk"><b>운영주체 미정</b><span>구축 전 운영 책임체계를 확정해야 한다.</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">7</span> 추가 확인사항</h2>
+      <div class="check">
+        구축 일정 · 예산 · 담당 부서 · 운영 책임자<br>
+        KPI 세부 항목 및 산식 · 공통 입력 양식<br>
+        사용자·권한 범위 · 시스템 연계 범위<br>
+        시범운영 여부 · 검수 및 운영 기준
+      </div>
+    </section>
+
+    <section class="card span3 decision">
+      <h2><span class="num" style="background:rgba(255,255,255,.14);color:#fff">!</span> 의사결정이 필요한 사항</h2>
+      <div class="decision-grid">
+        <div class="decision-item"><b>01</b>시각화 개선 추진 여부를 결정해야 한다.</div>
+        <div class="decision-item"><b>02</b>공통 입력 양식·KPI 표준화의 추진 범위를 결정해야 한다.</div>
+        <div class="decision-item"><b>03</b>기존 시스템 연계·변경 여부를 결정해야 한다.</div>
+        <div class="decision-item"><b>04</b>담당 부서와 운영 책임 주체를 지정해야 한다.</div>
+        <div class="decision-item"><b>05</b>구축 일정과 예산 검토 방향을 결정해야 한다.</div>
+        <div class="decision-item"><b>06</b>시범운영 범위를 설정할지 결정해야 한다.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const allBtn = document.getElementById('allBtn');
+  const factBtn = document.getElementById('factBtn');
+
+  allBtn.addEventListener('click', () => {
+    document.body.classList.remove('hide-proposal');
+    allBtn.classList.add('active');
+    factBtn.classList.remove('active');
+  });
+
+  factBtn.addEventListener('click', () => {
+    document.body.classList.add('hide-proposal');
+    factBtn.classList.add('active');
+    allBtn.classList.remove('active');
+  });
+</script>
+</body>
+</html>
